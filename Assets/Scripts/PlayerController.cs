@@ -4,20 +4,27 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     private float speed = 5.0f;
-    public float turnSpeed;
-    public InputAction playerControls;
-    Vector3 moveDirection = Vector3.zero;
+    private float rotationSpeed = 20f;
+    private CarControls controls;
+    private Vector2 moveInput;
 
-    private float horizontalInput;
+    void Awake()
+    {
+        controls = new CarControls();
 
+        // subscribing to input action
+        controls.gameplay.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+
+        controls.gameplay.Move.canceled += ctx => moveInput = Vector2.zero;
+    }
     private void OnEnable()
     {
-        playerControls.Enable();
+        controls.gameplay.Enable();
     }
 
     private void OnDisable()
     {
-        playerControls.Disable();
+        controls.gameplay.Disable();
     }
 
 
@@ -30,15 +37,12 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float forward = moveInput.y;
         // Will move the vehicle forward
-        transform.Translate(moveDirection * Time.deltaTime * speed);
+        transform.Translate(Vector3.forward * forward * Time.deltaTime * speed);
 
         // will move the vehicle side to side
-        // transform.Translate(moveDirection * Time.deltaTime * turnSpeed);
-        transform.Rotate(Vector3.up, Time.deltaTime * turnSpeed * horizontalInput);
-
-        moveDirection = playerControls.ReadValue<Vector3>();
-        horizontalInput = Input.GetAxis("Horizontal");
-        
+        float turn = moveInput.x;
+        transform.Rotate(Vector3.up * turn * Time.deltaTime * rotationSpeed);
     }
 }
